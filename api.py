@@ -12,12 +12,19 @@ import pandas as pd
 class Oanda_api:
 
     def __init__(self, token, account_id):
+        """
+            Token of the OANDA app
+            Account id of the user 
+        """
         self.token = token
         self.client = oandapyV20.API(access_token=self.token,environment="practice")
         self.id = account_id
 
 
     def data(self, instrument):
+        """
+            Takes an instrument and return the Open High Low Close of the instrument
+        """
         params = {"count": 800,"granularity": "M15"} #granularity can be in seconds S5 - S30, minutes M1 - M30, hours H1 - H12, days D, weeks W or months M
         candles = instruments.InstrumentsCandles(instrument=instrument,params=params)
         self.client.request(candles)
@@ -49,12 +56,33 @@ class Oanda_api:
         self.client.request(r)
 
     def buy(self, instrument, sl, pos):
+        """
+            Open a long position
+            Instrument can be EUR_USD
+            Takes an instrument
+            sl(stop loss) => float
+            pos(position or amount) => float
+
+        """
         self.market_order(instrument,pos, sl)
 
     def sell(self, instrument, sl, pos):
+        """
+            Open a Short position
+            Instrument can be EUR_USD
+            Takes an instrument
+            sl(stop loss) => float
+            pos(position or amount) => float
+        """
         self.market_order(instrument,-1*pos, sl)
 
     def is_buy(self, instrument):
+        """
+            Check if there is an open position for the instrument
+            return True if there is a long position
+            return False if there is a short position
+            return None if no position is open
+        """
         all_positions = positions.PositionDetails(accountID=self.id, instrument=instrument)
         self.client.request(all_positions)
         open_pos = all_positions.response["position"]
@@ -69,6 +97,9 @@ class Oanda_api:
         return None
     
     def close(self, instrument):
+        """
+            Check if there is an open short or long position then Close the position
+        """
         data_short = {
         "shortUnits": "ALL"}
         data_long = {
@@ -84,6 +115,9 @@ class Oanda_api:
 
     
     def get_trades(self):
+        """
+            Get all open trades
+        """
         r = trades.OpenTrades(accountID=self.id)
         open_trades = self.client.request(r)['trades']
         return open_trades
